@@ -467,6 +467,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.minAreaSlider = QSlider(self.layoutWidget3)
         self.minAreaSlider.setObjectName(u"minAreaSlider")
+        self.minAreaSlider.setSliderPosition(100)
+        self.minAreaSlider.setMinimum(100)
         self.minAreaSlider.setMaximum(100000)
         self.minAreaSlider.setSingleStep(100)
         self.minAreaSlider.setOrientation(Qt.Horizontal)

@@ -15,8 +15,7 @@ Automatic shooting score detection (ASSD) system with a QT Gui written in python
 Install the following libraries for proper functioning of the project
 
 ```bash
-  pip install opencv-python
-  pip install numpy
-  pip install pyside6
+  source install.sh
+  source start.sh
 ```
     

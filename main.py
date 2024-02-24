@@ -67,7 +67,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             mask_upper_hsv = np.array([self.MaskMaxHSlider.value(), self.MaskMaxSSlider.value(), self.MaskMaxVSlider.value()], dtype=np.uint8)
 
             hsv_original = cv2.cvtColor(src=self.copyImage,code=cv2.COLOR_BGR2HSV)
-            self.mask = cv2.inRange(src=hsv_original, lowerb=mask_lower_hsv, upperb=mask_upper_hsv)
+
+            #hardcoded values for masking red color
+
+            mask1_lower_hsv = np.array([0,50,50], dtype=np.uint8)
+            mask1_upper_hsv = np.array([10,255,255], dtype=np.uint8)
+            mask1 = cv2.inRange(src=hsv_original, lowerb=mask1_lower_hsv, upperb=mask1_upper_hsv)
+
+            mask2_lower_hsv = np.array([170,50,50], dtype=np.uint8)
+            mask2_upper_hsv = np.array([180,255,255], dtype=np.uint8)
+            mask2 = cv2.inRange(src=hsv_original, lowerb=mask2_lower_hsv, upperb=mask2_upper_hsv)
+
+            mask_full = mask1+mask2
+            # self.wrapped_mask[np.where(mask=0)] = 0
+
+            # self.mask = cv2.inRange(src=hsv_original, lowerb=mask_lower_hsv, upperb=mask_upper_hsv)
+            mask_hsv = hsv_original.copy()
+            mask_hsv[np.where(mask_full==0)] = 0
+
+            #conversion of mask from hsv to grayscale
+	
+            (h,s,v) = cv2.split(mask_hsv)
+            v[:] = 100
+            img = cv2.merge((v, v, s))
+            rgb = cv2.cvtColor(img, cv2.COLOR_HSV2RGB)	
+            gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+
+            self.mask = gray
+            # self.mask[np.where(mask_full==0)] = 0
 
             if self.invertMaskCheckBox.isChecked():
                 self.mask = cv2.bitwise_not(self.mask)
@@ -108,9 +135,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         wrappedImage = self.cvt_cv_qt(wrapped)
                         self.targetSource.setPixmap(wrappedImage)
                         self.targetSource.setScaledContents(True)
+                        
 
                         wrapped_mask_lower_hsv = np.array([self.TargetMinHSlider.value(), self.TargetMinSSlider.value(), self.TargetMinVSlider.value()], dtype=np.uint8)
                         wrapped_mask_upper_hsv = np.array([self.TargetMaxHSlider.value(), self.TargetMaxSSlider.value(), self.TargetMaxVSlider.value()], dtype=np.uint8)
+
                         hsv_wrapped = cv2.cvtColor(src=wrapped,code=cv2.COLOR_BGR2HSV)
                         self.wrapped_mask = cv2.inRange(src=hsv_wrapped, lowerb=wrapped_mask_lower_hsv, upperb=wrapped_mask_upper_hsv)
 
@@ -266,7 +295,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.textEdit.append(f"{type(e)} {e}")
                 break
 
-            # Request And Store Nickname
             msg = pickle.dumps('NICK')
             msg = bytes(f'{len(msg):<{self.HEADERSIZE}}', 'utf-8') + msg
             client.send(msg)
@@ -284,7 +312,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     # Broadcasting Messages
                     message = client.recv(1024)
                     message = pickle.loads(message)
-                    if message:
+                    if message == True:
                         self.calculateScoreFlag.setChecked(True)
                         self.textEdit.append("calculating Score...")
                     self.textEdit.append(str(message))
@@ -358,6 +386,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         self.clientGetScoreBtn.setEnabled(True)
                     else:
                         self.textEdit.append("unknown data type from server")
+                        print("error while reciving")
 
             except Exception as e:
                 if type(e)==ConnectionResetError:
